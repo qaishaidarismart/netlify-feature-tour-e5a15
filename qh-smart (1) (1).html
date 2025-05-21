@@ -1,0 +1,155 @@
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قیس حیدری هوشمند</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"></link>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-[#050a1a] flex items-center justify-center min-h-screen font-roboto">
+
+<div class="relative z-10 p-6 w-96 bg-[rgba(0,255,255,0.05)] border border-[rgba(0,255,255,0.2)] shadow-[0_0_30px_rgba(0,255,255,0.1)] backdrop-blur animate-[frame-pulse_5s_infinite_ease-in-out] flex flex-col items-stretch text-right">
+    <h1 class="text-[#00ffff] text-2xl font-bold mb-4 text-center">قیس حیدری هوشمند</h1>
+    
+    <div class="flex items-center mb-4">
+        <input
+            type="text"
+            placeholder="از قیس حیدری هوشمند بپرسید..."
+            class="flex-1 bg-transparent border border-[rgba(0,255,255,0.2)] text-[#00ffff] placeholder-[rgba(0,255,255,0.4)] font-mono text-sm px-3 py-2 caret-[#00ffff] focus:outline-none focus:border-[rgba(0,255,255,0.5)] focus:shadow-[0_0_12px_rgba(0,255,255,0.3)]"
+            id="questionInput"
+        />
+        <button
+            class="ml-3 bg-[rgba(0,255,255,0.05)] border border-[rgba(0,255,255,0.4)] px-4 py-2 clip-path-[polygon(0_0,100%_0,85%_100%,0_100%)] shadow-[0_0_8px_rgba(0,255,255,0.3)] rotate-[-1deg] hover:scale-110 hover:shadow-[0_0_25px_rgba(0,255,255,0.8),0_0_40px_rgba(0,255,255,0.5)] transition-all"
+            onclick="searchAnswer()"
+        >
+            <svg
+                stroke="currentColor"
+                fill="none"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                class="w-4 h-4 text-[#00ffff]"
+                xmlns="http://www.w3.org/2000/svg"
+            >
+                <path d="M22 2L11 13"></path>
+                <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+            </svg>
+        </button>
+    </div>
+
+    <div class="flex items-center mb-4">
+        <input
+            type="text"
+            placeholder="موقعیت را وارد کنید..."
+            class="flex-1 bg-transparent border border-[rgba(0,255,255,0.2)] text-[#00ffff] placeholder-[rgba(0,255,255,0.4)] font-mono text-sm px-3 py-2 caret-[#00ffff] focus:outline-none focus:border-[rgba(0,255,255,0.5)] focus:shadow-[0_0_12px_rgba(0,255,255,0.3)]"
+            id="locationInput"
+        />
+        <button class="ml-3 bg-[rgba(0,255,255,0.05)] border border-[rgba(0,255,255,0.4)] px-4 py-2 clip-path-[polygon(0_0,100%_0,85%_100%,0_100%)] shadow-[0_0_8px_rgba(0,255,255,0.3)] rotate-[-1deg] hover:scale-110 hover:shadow-[0_0_25px_rgba(0,255,255,0.8),0_0_40px_rgba(0,255,255,0.5)] transition-all" onclick="showMap()">
+            <i class="fas fa-map-marker-alt text-[#00ffff]"></i>
+        </button>
+    </div>
+
+    <div class="flex justify-start mb-4">
+        <button
+            class="bg-[rgba(0,255,255,0.05)] border border-[rgba(0,255,255,0.4)] px-4 py-2 clip-path-[polygon(0_0,100%_0,85%_100%,0_100%)] shadow-[0_0_8px_rgba(0,255,255,0.3)] rotate-[-1deg] hover:scale-110 hover:shadow-[0_0_25px_rgba(0,255,255,0.8),0_0_40px_rgba(0,255,255,0.5)] transition-all"
+            onclick="startCamera()"
+        >
+            <i class="fas fa-camera text-[#00ffff]"></i>
+        </button>
+    </div>
+
+    <div class="border border-[rgba(0,255,255,0.2)] overflow-hidden h-48 mb-4">
+        <video id="video" class="w-full h-full object-cover" autoplay muted></video>
+    </div>
+
+    <div class="flex justify-center">
+        <button
+            class="bg-[rgba(0,255,255,0.05)] border border-[rgba(0,255,255,0.4)] px-4 py-2 clip-path-[polygon(0_0,100%_0,85%_100%,0_100%)] shadow-[0_0_8px_rgba(0,255,255,0.3)] rotate-[-1deg] hover:scale-110 hover:shadow-[0_0_25px_rgba(0,255,255,0.8),0_0_40px_rgba(0,255,255,0.5)] transition-all"
+        >
+            <i class="fas fa-paper-plane text-[#00ffff]"></i>
+        </button>
+    </div>
+
+    <div id="answer" class="text-[#00ffff] mt-4"></div>
+    <div id="map" class="h-48 w-full mt-4"></div>
+</div>
+
+<div class="absolute top-0 left-0 w-full h-full z-0 animate-[grid-move_2s_linear_infinite] bg-[repeating-linear-gradient(0deg,rgba(0,255,255,0.05)_0px,rgba(0,255,255,0.05)_1px,transparent_1px,transparent_20px),repeating-linear-gradient(90deg,rgba(0,255,255,0.05)_0px,rgba(0,255,255,0.05)_1px,transparent_1px,transparent_20px)]"></div>
+
+<script>
+    const style = document.createElement("style");
+    style.textContent = `
+        @keyframes grid-move {
+            0% { background-position: 0 0, 0 0; }
+            100% { background-position: 40px 40px, 40px 40px; }
+        }
+
+        @keyframes frame-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.95; }
+        }
+    `;
+    document.head.appendChild(style);
+
+    function searchAnswer() {
+        const question = document.getElementById('questionInput').value;
+        const answerDiv = document.getElementById('answer');
+        
+        if (question.trim() === "") {
+            answerDiv.textContent = "لطفاً یک سوال وارد کنید.";
+            return;
+        }
+
+        fetch(`https://fa.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(question)}&format=json&origin=*`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.query && data.query.search && data.query.search.length > 0) {
+                    const pageId = data.query.search[0].pageid;
+                    fetch(`https://fa.wikipedia.org/w/api.php?action=query&prop=extracts&exintro&explaintext&pageids=${pageId}&format=json&origin=*`)
+                        .then(response => response.json())
+                        .then(data => {
+                            const page = data.query.pages[pageId];
+                            if (page && page.extract) {
+                                answerDiv.innerHTML = `<p class="text-lg">${page.extract}</p>`;
+                            } else {
+                                answerDiv.innerHTML = `<p class="text-lg text-red-500">نتیجه‌ای یافت نشد.</p>`;
+                            }
+                        });
+                } else {
+                    answerDiv.innerHTML = `<p class="text-lg text-red-500">نتیجه‌ای یافت نشد.</p>`;
+                }
+            })
+            .catch(() => {
+                answerDiv.innerHTML = `<p class="text-lg text-red-500">خطا در واکشی داده‌ها.</p>`;
+            });
+    }
+
+    function startCamera() {
+        const video = document.getElementById('video');
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
+                video.srcObject = stream;
+                video.play();
+            });
+        }
+    }
+
+    function showMap() {
+        const mapDiv = document.getElementById('map');
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(position => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${lon-0.05}%2C${lat-0.05}%2C${lon+0.05}%2C${lat+0.05}&layer=mapnik&marker=${lat}%2C${lon}`;
+                mapDiv.innerHTML = `<iframe width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="${mapUrl}"></iframe>`;
+            }, () => {
+                mapDiv.innerHTML = `<p class="text-lg text-red-500">موقعیت شما یافت نشد.</p>`;
+            });
+        } else {
+            mapDiv.innerHTML = `<p class="text-lg text-red-500">مرورگر شما از موقعیت‌یابی پشتیبانی نمی‌کند.</p>`;
+        }
+    }
+</script>
+
+</body>
+</html>
